@@ -1,4 +1,4 @@
-<h1>Coordinate Plotter - A QGIS Plugin</h1>
+<h1>Coordinate Plotter - QGIS Plugin</h1>
 
 
 
