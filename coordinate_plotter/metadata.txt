@@ -12,8 +12,8 @@ email=ithompson@pre-construct.com
 
 about=This plugin plots coordinates from user-inputted values.
 
-tracker=https://github.com/ithompson3629/Coordinate_Plotter_QGIS_Plugin/issues
-repository=https://github.com/ithompson3629/Coordinate_Plotter_QGIS_Plugin
+tracker=https://github.com/iswaldeen/QGIS_Plugin_Coordinate_plotter/issues
+repository=https://github.com/iswaldeen/QGIS_Plugin_Coordinate_plotter
 # End of mandatory metadata
 
 # Recommended items:
