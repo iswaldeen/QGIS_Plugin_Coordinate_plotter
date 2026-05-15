@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Coordinate Plotter Help</title>
+    <style>
+        body {
+            background-color: #ffc9c9;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #222;
+            margin: 30px;
+            line-height: 1.6;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.75);
+            border-radius: 12px;
+            padding: 25px;
+            max-width: 850px;
+            margin: auto;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 2px solid #e8a5a5;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .header img {
+            width: 48px;
+            height: 48px;
+        }
+
+        h1, h2 {
+            color: #5a1f1f;
+        }
+
+        .note {
+            background: #fff3f3;
+            border-left: 5px solid #d77;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+
+        ol, ul {
+            padding-left: 25px;
+        }
+
+        code {
+            background: #fff;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="header">
+            <img src="../icons/coordinate_plotter_icon.png" alt="Coordinate Plotter icon">
+            <h1>Coordinate Plotter Help</h1>
+        </div>
+
+        <h2>What does this tool do?</h2>
+        <p>
+            Coordinate Plotter allows you to create a point on the QGIS map by typing in an X coordinate and a Y coordinate.
+        </p>
+
+        <h2>How to use the tool</h2>
+        <ol>
+            <li>Open the <strong>Coordinate Plotter</strong> tool from the QGIS toolbar or plugin menu.</li>
+            <li>Choose where the new point should be added.</li>
+            <li>Enter the X and Y coordinates.</li>
+            <li>Click <strong>OK</strong>.</li>
+        </ol>
+
+        <div class="note">
+            When the tool first opens, no plotting option is selected. This is intentional, so you can choose whether to add the point to an existing layer or create a temporary layer.
+        </div>
+
+        <h3>Option 1: Choose an existing map layer</h3>
+        <ul>
+            <li>Select <strong>Choose an existing map layer</strong>.</li>
+            <li>Choose a point layer from the layer dropdown.</li>
+            <li>Enter the X and Y coordinates.</li>
+            <li>Click <strong>OK</strong>.</li>
+        </ul>
+
+        <div class="note">
+            Only point layers can be selected. If no valid point layer is available, the OK button will stay disabled.
+        </div>
+
+        <div class="note">
+            When using an existing map layer, the CRS option is disabled. The point will be added using the CRS of the selected layer.
+        </div>
+
+        <h3>Option 2: Create a temporary layer</h3>
+        <ul>
+            <li>Select <strong>Create a temporary layer</strong>.</li>
+            <li>Enter the X and Y coordinates.</li>
+            <li>Choose whether to use the project CRS or select another CRS.</li>
+            <li>Click <strong>OK</strong>.</li>
+        </ul>
+
+        <h2>Using the CRS options</h2>
+        <p>
+            By default, <strong>Use project CRS</strong> is checked when creating a temporary layer. This means the new temporary layer will use the same coordinate reference system as the current QGIS project.
+        </p>
+
+        <p>
+            To choose a different CRS for a temporary layer:
+        </p>
+
+        <ol>
+            <li>Select <strong>Create a temporary layer</strong>.</li>
+            <li>Untick <strong>Use project CRS</strong>.</li>
+            <li>Use the CRS selector to choose the coordinate system you want.</li>
+            <li>Enter your coordinates.</li>
+            <li>Click <strong>OK</strong>.</li>
+        </ol>
+
+        <div class="note">
+            The CRS selector only applies when creating a temporary layer. Existing layers already have their own CRS.
+        </div>
+
+        <div class="note">
+            Make sure your X and Y coordinates match the CRS you are using. For example, British National Grid coordinates should be used with <code>EPSG:27700</code>.
+        </div>
+
+        <h2>After plotting</h2>
+        <p>
+            Once the point is created, QGIS will zoom to the plotted coordinate and show a confirmation message.
+        </p>
+
+        <h2>Common issues</h2>
+        <ul>
+            <li><strong>The OK button is disabled:</strong> select a plotting option and make sure a valid point layer is selected if using an existing layer.</li>
+            <li><strong>The point appears in the wrong place:</strong> check that the coordinates match the CRS being used.</li>
+            <li><strong>No layers appear in the dropdown:</strong> make sure your project contains at least one point layer.</li>
+            <li><strong>The CRS option is disabled:</strong> this is normal when using an existing map layer.</li>
+        </ul>
+
+        <h2>Temporary layers</h2>
+        <p>
+            Temporary layers are not automatically saved to disk. To keep the plotted point permanently, right-click the layer in QGIS and choose <strong>Export &gt; Save Features As...</strong>.
+        </p>
+
+    </div>
+</body>
+</html>

@@ -6,9 +6,9 @@
 name=Coordinate Plotter
 qgisMinimumVersion=3.0
 description=This plugin plots coordinates from user-inputted values.
-version=1.01
+version=1.02
 author=Isaac Thompson
-email=ithompson@pre-construct.com
+email=iswaldeen@outlook.com
 
 about=This plugin plots coordinates from user-inputted values.
 
@@ -20,20 +20,45 @@ repository=https://github.com/iswaldeen/QGIS_Plugin_Coordinate_plotter
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog= 1.01
- - Added option to always create a temporary layer
- - Added feature when spinboxes are locked if an option isn't selected
- - Added feature when existing layer is checked but there is no valid layer, Ok button is disabled
- - Bug fixes for dialog to be cleared after closing or pressing ok
+changelog= <strong>1.02</strong>
+ - Refactored PyQt imports to use qgis.PyQt consistently
+ - Removed unused imports and cleaned up internal code structure
+ - Improved layer validation and error handling
+ - Added point geometry type validation for selected layers
+ - Improved temporary memory layer creation handling
+ - Added layer extent updates and repaint refresh after plotting
+ - Improved dialog state handling and checkbox logic
+ - Added automatic UI updates when layer selection changes
+ - Prevented duplicate signal connections when reopening the plugin
+ - Added CRS selection support for temporary layers
+ - Added option to use either project CRS or custom CRS
+ - Added QgsProjectionSelectionWidget integration
+ - Improved CRS widget enable/disable behaviour
+ - Prevented invalid CRS checkbox states when switching plotting modes
+ - Improved handling of existing layer CRS behaviour
+ - Added clearer CRS guidance and workflow documentation to help page
+ - Improved dialog sizing and resize behaviour
+ - Simplified dialog reset behaviour
+ - Removed unused legacy methods
+ - Improved code readability and maintainability
+
+ <p><strong>1.01</strong>
+ - Added option to create a temporary point layer automatically
+ - Added UI locking when no plotting option is selected
+ - Disabled OK button when no valid target layer is selected
+ - Improved dialog reset and cleanup behaviour
+
+ <p><strong>1.00</strong>
+ - First release of Coordinate Plotter plugin
 
 # Tags are comma separated with spaces allowed
-tags=python, coordinates, PCA, Pre-construct Archaeology, point
+tags=python, coordinates, point
 
-homepage=https://github.com/ithompson3629/Coordinate_Plotter_QGIS_Plugin
+homepage=https://github.com/iswaldeen/QGIS_Plugin_Coordinate_plotter
 category=Plugins
-icon=coordinate_plotter_icon.png
+icon=icons/coordinate_plotter_icon.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False

@@ -8,7 +8,7 @@
                              -------------------
         begin                : 2023-09-20
         copyright            : (C) 2023 by Isaac
-        email                : ithompson@pre-construct.com
+        email                : iswaldeen@outlook.com
         git sha              : $Format:%H$
  ***************************************************************************/
 
