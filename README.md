@@ -1,6 +1,6 @@
 <h1>Coordinate Plotter - QGIS Plugin</h1>
 
-<img src="coordinate_plotter/coordinate_plotter_icon.png" width="100" height="100">
+<img src="coordinate_plotter/icons/coordinate_plotter_icon.png" width="100" height="100">
 
 Coordinate Plotter is a QGIS plugin that allows users to create point features by entering X and Y coordinate values.
 
