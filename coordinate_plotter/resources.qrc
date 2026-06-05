@@ -3,5 +3,7 @@
         <file>icons/coordinate_plotter_icon.png</file>
 		<file>icons/settings.png</file>
 		<file>icons/question_mark.png</file>
+		<file>icons/settings_darkmode.png</file>
+		<file>icons/question_mark_darkmode.png</file>
     </qresource>
 </RCC>

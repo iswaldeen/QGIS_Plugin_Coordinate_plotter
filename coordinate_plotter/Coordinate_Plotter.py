@@ -14,6 +14,7 @@ from qgis.PyQt.QtGui import QIcon, QDesktopServices
 from qgis.PyQt.QtWidgets import QAction, QMessageBox, QDialog, QDialogButtonBox, QButtonGroup
 
 from qgis.core import (
+    QgsCoordinateTransform,
     QgsFeature,
     QgsGeometry,
     QgsMapLayerProxyModel,
@@ -22,9 +23,12 @@ from qgis.core import (
     QgsRectangle,
     QgsVectorLayer,
     QgsWkbTypes,
+    edit,
+    QgsCsException,
 )
 
-from .resources import *
+import math
+from . import resources
 from .Coordinate_Plotter_dialog import CoordinatePlotterDialog
 
 
@@ -43,37 +47,18 @@ class CoordinatePlotter:
             "CoordinatePlotter_{}.qm".format(locale)
         )
 
+        self.translator = None
+
         if os.path.exists(locale_path):
-            self.translator = QTranslator()
-            self.translator.load(locale_path)
-            QCoreApplication.installTranslator(self.translator)
+            translator = QTranslator()
+
+            if translator.load(locale_path):
+                QCoreApplication.installTranslator(translator)
+                self.translator = translator
 
         self.actions = []
         self.menu = self.tr("&Coordinate Plotter")
         self.dlg = CoordinatePlotterDialog()
-        
-        # Style the help button as a circular help icon button.
-        self.dlg.helppushButton.setFixedSize(32, 32)
-        self.dlg.helppushButton.setToolTip("Open Coordinate Plotter help")
-
-        self.dlg.helppushButton.setStyleSheet("""
-            QPushButton {
-                border-radius: 16px;
-                border: 1px solid palette(mid);
-                font-weight: bold;
-                font-size: 16px;
-                padding: 0px;
-                background-color: palette(button);
-            }
-
-            QPushButton:hover {
-                background-color: palette(light);
-            }
-
-            QPushButton:pressed {
-                background-color: palette(midlight);
-            }
-        """)
 
         self.dlg.helppushButton.clicked.connect(self.open_help)
 
@@ -160,22 +145,28 @@ class CoordinatePlotter:
         self.first_start = True
 
     def unload(self):
-        """Remove the plugin menu item and icon from the QGIS GUI."""
+        """Remove plugin actions and translators from the QGIS GUI."""
         for action in self.actions:
             self.iface.removePluginMenu(self.menu, action)
             self.iface.removeToolBarIcon(action)
+
+        self.actions.clear()
+
+        if self.translator is not None:
+            QCoreApplication.removeTranslator(self.translator)
+            self.translator = None
 
     def run(self):
         """Open the dialog and plot the entered coordinates if accepted."""
         if self.first_start:
             self.first_start = False
 
-        self.dlg.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+        self.set_ok_button_enabled(False)
         self.layer_type_check()
 
-        result = self.dlg.exec_()
+        result = self.exec_dialog()
 
-        if result != QDialog.Accepted:
+        if result != self.dialog_accepted_code():
             return
 
         if self.dlg.layercheckBox.isChecked():
@@ -189,29 +180,37 @@ class CoordinatePlotter:
             if not selected_crs.isValid():
                 QMessageBox.warning(
                     self.iface.mainWindow(),
-                    "Coordinate plotting",
-                    "The selected CRS is not valid."
+                    self.tr("Coordinate plotting"),
+                    self.tr("The selected CRS is not valid.")
                 )
                 return
 
-            crs_definition = selected_crs.authid() if selected_crs.authid() else selected_crs.toWkt()
-
             layer = QgsVectorLayer(
-                "Point?crs={}".format(crs_definition),
-                "Plotted Coordinate Layer",
+                "Point",
+                self.next_temporary_layer_name(),
                 "memory"
             )
+
+            if layer.isValid():
+                layer.setCrs(selected_crs)
 
             if not layer.isValid():
                 QMessageBox.critical(
                     self.iface.mainWindow(),
-                    "Coordinate plotting",
-                    "Failed to create the temporary point layer."
+                    self.tr("Coordinate plotting"),
+                    self.tr("Failed to create the temporary point layer.")
                 )
                 return
 
             QgsProject.instance().addMapLayer(layer)
             self.plot(layer)
+    
+    def exec_dialog(self):
+        """Execute the dialog in a QGIS 3 / QGIS 4 compatible way."""
+        if hasattr(self.dlg, "exec"):
+            return self.dlg.exec()
+
+        return self.dlg.exec_()
 
     def selected_output_crs(self):
         """Return the CRS to use for a newly created temporary layer."""
@@ -219,101 +218,167 @@ class CoordinatePlotter:
             return QgsProject.instance().crs()
 
         return self.dlg.mQgsProjectionSelectionWidget.crs()
+    
+    def ensure_layer_visible(self, layer):
+        """Switch on layer visibility if the plotted layer is currently hidden."""
+        layer_tree_layer = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
+
+        if layer_tree_layer is None:
+            return False
+
+        if layer_tree_layer.isVisible():
+            return False
+
+        layer_tree_layer.setItemVisibilityChecked(True)
+        return True
+    
+    def next_temporary_layer_name(self):
+        """Return the next available sequential temporary layer name."""
+        base_name = self.tr("Plotted Coordinate Layer")
+        existing_names = {
+            layer.name()
+            for layer in QgsProject.instance().mapLayers().values()
+        }
+
+        if base_name not in existing_names:
+            return base_name
+
+        index = 2
+
+        while f"{base_name} {index}" in existing_names:
+            index += 1
+
+        return f"{base_name} {index}"
 
     def plot(self, layer):
         """Plot a point feature using the coordinates entered in the dialog."""
         if layer is None:
             QMessageBox.warning(
                 self.iface.mainWindow(),
-                "Coordinate plotting",
-                "No valid point layer was selected."
+                self.tr("Coordinate plotting"),
+                self.tr("No valid point layer was selected.")
             )
             return
 
         if not isinstance(layer, QgsVectorLayer) or not layer.isValid():
             QMessageBox.warning(
                 self.iface.mainWindow(),
-                "Coordinate plotting",
-                "The selected layer is not a valid vector layer."
+                self.tr("Coordinate plotting"),
+                self.tr("The selected layer is not a valid vector layer.")
             )
             return
 
         if QgsWkbTypes.geometryType(layer.wkbType()) != QgsWkbTypes.PointGeometry:
             QMessageBox.warning(
                 self.iface.mainWindow(),
-                "Coordinate plotting",
-                "The selected layer is not a point layer."
+                self.tr("Coordinate plotting"),
+                self.tr("The selected layer is not a point layer.")
             )
             return
 
         if not layer.isSpatial():
             QMessageBox.warning(
                 self.iface.mainWindow(),
-                "Coordinate plotting",
-                "The selected layer does not support geometry."
+                self.tr("Coordinate plotting"),
+                self.tr("The selected layer does not support geometry.")
             )
             return
 
         x = self.dlg.doubleSpinBox.value()
         y = self.dlg.doubleSpinBox_2.value()
 
+        if not math.isfinite(x) or not math.isfinite(y):
+            QMessageBox.warning(
+                self.iface.mainWindow(),
+                self.tr("Coordinate plotting"),
+                self.tr("Invalid coordinate values.")
+            )
+            return
+
         new_feature = QgsFeature(layer.fields())
         new_feature.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(x, y)))
-
+        
         was_editing = layer.isEditable()
 
-        if not was_editing and not layer.startEditing():
+        try:
+            if was_editing:
+                if not layer.addFeature(new_feature):
+                    raise RuntimeError(self.tr("Failed to add feature."))
+            else:
+                with edit(layer):
+                    if not layer.addFeature(new_feature):
+                        raise RuntimeError(self.tr("Failed to add feature."))
+
+        except Exception as exc:
             QMessageBox.critical(
                 self.iface.mainWindow(),
-                "Coordinate plotting",
-                "Could not start editing on the selected layer."
+                self.tr("Coordinate plotting"),
+                self.tr("Failed to add the coordinate.") + f"\n\n{exc}"
             )
             return
-
-        if not layer.addFeature(new_feature):
-            if not was_editing:
-                layer.rollBack()
-
-            QMessageBox.critical(
-                self.iface.mainWindow(),
-                "Coordinate plotting",
-                "Failed to add the coordinate to the selected layer."
-            )
-            return
-
-        if not was_editing:
-            if not layer.commitChanges():
-                errors = "\n".join(layer.commitErrors())
-                layer.rollBack()
-
-                QMessageBox.critical(
-                    self.iface.mainWindow(),
-                    "Coordinate plotting",
-                    "Failed to save the new coordinate.\n\n{}".format(errors)
-                )
-                return
 
         layer.updateExtents()
         layer.triggerRepaint()
+        
+        layer_visibility_enabled = self.ensure_layer_visible(layer)
 
         canvas = self.iface.mapCanvas()
 
-        # Zoom around the plotted point using map units.
-        scale = 50
+        source_crs = layer.crs()
+        destination_crs = canvas.mapSettings().destinationCrs()
+        center = QgsPointXY(x, y)
+
+        if source_crs.isValid() and destination_crs.isValid() and source_crs != destination_crs:
+            transform = QgsCoordinateTransform(
+                source_crs,
+                destination_crs,
+                QgsProject.instance()
+            )
+           
+            try:
+                center = transform.transform(center)
+            except QgsCsException:
+                QMessageBox.warning(
+                    self.iface.mainWindow(),
+                    self.tr("Coordinate plotting"),
+                    self.tr("The point was added, but QGIS could not transform it for map zooming.")
+                )
+                return
+
+        current_extent = canvas.extent()
+        width = current_extent.width() * 0.1
+        height = current_extent.height() * 0.1
+
         rect = QgsRectangle(
-            x - scale,
-            y - scale,
-            x + scale,
-            y + scale
+            center.x() - width,
+            center.y() - height,
+            center.x() + width,
+            center.y() + height
         )
 
         canvas.setExtent(rect)
         canvas.refresh()
 
+        message = self.tr("Coordinates successfully plotted:\nX = {} Y = {}").format(x, y)
+
+        if layer_visibility_enabled:
+            message += (
+                self.tr("\n\nThe selected layer was hidden, so its visibility "
+                "has been turned on.")
+            )
+
+        # If the layer was already in edit mode before plotting,
+        # the new feature has not yet been permanently saved.
+        if was_editing:
+            message += (
+                self.tr("\n\nThe layer is still in edit mode. "
+                "Save edits to permanently store the new point.")
+            )
+
         QMessageBox.information(
             self.iface.mainWindow(),
-            "Coordinate plotting",
-            "Coordinates successfully plotted:\nX = {} Y = {}".format(x, y)
+            self.tr("Coordinate plotting"),
+            message
         )
 
         self.clean_dialogue()
@@ -323,13 +388,16 @@ class CoordinatePlotter:
         create_temp_layer = self.dlg.templayercheckBox.isChecked()
         use_existing_layer = self.dlg.layercheckBox.isChecked()
         selected_layer = self.dlg.mMapLayerComboBox.currentLayer()
-
-        # CRS selection only applies when creating a new temporary layer.
-        # Existing layers already have their own CRS, so the CRS option must not remain unchecked.
+        
+       # CRS selection only applies when creating a new temporary layer.
+        # When plotting to an existing layer, coordinates are interpreted in that layer's CRS.
         if use_existing_layer:
             self.dlg.crscheckBox.blockSignals(True)
-            self.dlg.crscheckBox.setChecked(True)
+            self.dlg.crscheckBox.setChecked(False)
             self.dlg.crscheckBox.blockSignals(False)
+
+            if selected_layer is not None and selected_layer.crs().isValid():
+                self.dlg.mQgsProjectionSelectionWidget.setCrs(selected_layer.crs())
 
         use_project_crs = self.dlg.crscheckBox.isChecked()
 
@@ -338,7 +406,12 @@ class CoordinatePlotter:
             use_existing_layer and selected_layer is not None
         )
 
+        # CRS controls are only relevant when creating a new temporary layer.
+        self.dlg.crscheckBox.setVisible(create_temp_layer)
+        self.dlg.mQgsProjectionSelectionWidget.setVisible(create_temp_layer)
+
         self.dlg.crscheckBox.setEnabled(create_temp_layer)
+
         self.dlg.mQgsProjectionSelectionWidget.setEnabled(
             create_temp_layer and not use_project_crs
         )
@@ -346,7 +419,15 @@ class CoordinatePlotter:
         self.dlg.mMapLayerComboBox.setEnabled(enable_layer_combo)
         self.dlg.doubleSpinBox.setEnabled(enable_coordinates)
         self.dlg.doubleSpinBox_2.setEnabled(enable_coordinates)
-        self.dlg.buttonBox.button(QDialogButtonBox.Ok).setEnabled(enable_coordinates)
+        self.set_ok_button_enabled(enable_coordinates)
+        
+    def dialog_accepted_code(self):
+        """Return QDialog accepted result code for Qt5/Qt6 compatibility."""
+        return getattr(QDialog, "DialogCode", QDialog).Accepted
+
+    def dialog_rejected_code(self):
+        """Return QDialog rejected result code for Qt5/Qt6 compatibility."""
+        return getattr(QDialog, "DialogCode", QDialog).Rejected
 
     def clean_dialogue(self):
         """Reset dialog controls to their default state."""
@@ -367,7 +448,8 @@ class CoordinatePlotter:
         self.dlg.mMapLayerComboBox.setEnabled(False)
         self.dlg.doubleSpinBox.setEnabled(False)
         self.dlg.doubleSpinBox_2.setEnabled(False)
-        self.dlg.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+        self.set_ok_button_enabled(False)
+        self.dlg.templayercheckBox.setChecked(True)
     
     def open_help(self):
         """Open the plugin help documentation in the default web browser."""
@@ -391,8 +473,21 @@ class CoordinatePlotter:
                 "Coordinate Plotter",
                 "The help file exists, but could not be opened."
             )
+    
+    def ok_button(self):
+        """Return the dialog OK button in a QGIS 3 / QGIS 4 compatible way."""
+        ok_role = getattr(QDialogButtonBox, "StandardButton", QDialogButtonBox).Ok
+        return self.dlg.buttonBox.button(ok_role)
+
+
+    def set_ok_button_enabled(self, enabled):
+        """Enable or disable the OK button if it exists."""
+        button = self.ok_button()
+
+        if button is not None:
+            button.setEnabled(enabled)
 
     def on_dialog_finished(self, result):
         """Reset the dialog if it is closed using Cancel or the window close button."""
-        if result == QDialog.Rejected:
+        if result == self.dialog_rejected_code():
             self.clean_dialogue()

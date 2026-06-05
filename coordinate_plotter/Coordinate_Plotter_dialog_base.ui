@@ -105,7 +105,7 @@
      <item>
       <widget class="QCheckBox" name="templayercheckBox">
        <property name="text">
-        <string> Create a temporary layer</string>
+        <string>Create a new temporary point layer</string>
        </property>
        <property name="autoExclusive">
         <bool>true</bool>
@@ -118,7 +118,7 @@
      <item>
       <widget class="QCheckBox" name="layercheckBox">
        <property name="text">
-        <string>Choose an existing map layer</string>
+        <string>Plot to an existing point layer</string>
        </property>
        <property name="autoExclusive">
         <bool>true</bool>
@@ -134,7 +134,7 @@
      <item>
       <widget class="QCheckBox" name="crscheckBox">
        <property name="text">
-        <string>Use project CRS</string>
+        <string>Use project CRS for new temporary layer</string>
        </property>
       </widget>
      </item>

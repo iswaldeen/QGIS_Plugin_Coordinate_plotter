@@ -9,7 +9,7 @@
         begin                : 2023-09-20
         git sha              : $Format:%H$
         copyright            : (C) 2023 by Isaac
-        email                : ithompson@pre-construct.com
+        email                : iswaldeen@pre-construct.com
  ***************************************************************************/
 
 /***************************************************************************
@@ -24,8 +24,7 @@
 
 import os
 
-from qgis.PyQt import uic
-from qgis.PyQt import QtWidgets
+from qgis.PyQt import QtGui, QtWidgets, uic
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -35,10 +34,93 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 class CoordinatePlotterDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         """Constructor."""
-        super(CoordinatePlotterDialog, self).__init__(parent)
-        # Set up the user interface from Designer through FORM_CLASS.
-        # After self.setupUi() you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
+        super().__init__(parent)
+
         self.setupUi(self)
+
+        self._configure_help_button()
+
+    def _configure_help_button(self):
+        """Apply a theme-aware icon and circular styling to the help button."""
+        if not hasattr(self, "helppushButton") or self.helppushButton is None:
+            return
+
+        is_dark = self._is_dark_ui()
+
+        icon_name = "question_mark_darkmode.png" if is_dark else "question_mark.png"
+        icon_path = os.path.join(os.path.dirname(__file__), "icons", icon_name)
+
+        if os.path.exists(icon_path):
+            self.helppushButton.setIcon(QtGui.QIcon(icon_path))
+
+        size = self.logicalDpiX() / 96 * 34
+
+        self.helppushButton.setFixedSize(int(size), int(size))
+        self.helppushButton.setIconSize(self.helppushButton.size() * 0.58)
+        self.helppushButton.setToolTip("Help")
+
+        self.helppushButton.setStyleSheet(
+            self._round_icon_button_stylesheet("helppushButton", is_dark)
+        )
+
+    @staticmethod
+    def _is_dark_ui():
+        """
+        Return True when the active QGIS/Qt palette appears dark.
+
+        This is safer than checking the QGIS theme name because QGIS 4 / Qt6
+        may follow the operating system colour scheme while the QGIS theme name
+        remains unchanged.
+        """
+        app = QtWidgets.QApplication.instance()
+        if app is None:
+            return False
+
+        if hasattr(QtGui.QPalette, "ColorRole"):
+            window_role = QtGui.QPalette.ColorRole.Window
+        else:
+            window_role = QtGui.QPalette.Window
+
+        palette = app.palette()
+        window_color = palette.color(window_role)
+
+        if hasattr(QtGui.QPalette, "ColorRole"):
+            text_role = QtGui.QPalette.ColorRole.WindowText
+        else:
+            text_role = QtGui.QPalette.WindowText
+
+        text_color = palette.color(text_role)
+
+        return text_color.lightness() > window_color.lightness()
+
+    @staticmethod
+    def _round_icon_button_stylesheet(button_object_name, is_dark):
+        """Return circular button styling for light and dark QGIS themes."""
+        if is_dark:
+            background = "#5a5a5a"
+            hover = "#686868"
+            pressed = "#4d4d4d"
+            border = "#3a3a3a"
+        else:
+            background = "#f4f4f4"
+            hover = "#e6e6e6"
+            pressed = "#d6d6d6"
+            border = "#b8b8b8"
+
+        return f"""
+            QPushButton#{button_object_name} {{
+                border-radius: 17px;
+                border: 1px solid {border};
+                background-color: {background};
+                background-image: none;
+                padding: 4px;
+            }}
+
+            QPushButton#{button_object_name}:hover {{
+                background-color: {hover};
+            }}
+
+            QPushButton#{button_object_name}:pressed {{
+                background-color: {pressed};
+            }}
+        """

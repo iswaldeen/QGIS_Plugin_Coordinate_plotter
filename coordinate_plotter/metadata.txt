@@ -5,12 +5,15 @@
 [general]
 name=Coordinate Plotter
 qgisMinimumVersion=3.0
+qgisMaximumVersion=4.99
+supportsQt6=True
+
 description=This plugin plots coordinates from user-inputted values.
-version=1.02
+version=1.1
 author=Isaac Thompson
 email=iswaldeen@outlook.com
 
-about=This plugin plots coordinates from user-inputted values.
+about=Coordinate Plotter allows users to quickly plot point coordinates. The plugin supports adding coordinates to existing point layers or creating temporary memory layers, with optional CRS selection and automatic map zooming to the plotted location.
 
 tracker=https://github.com/iswaldeen/QGIS_Plugin_Coordinate_plotter/issues
 repository=https://github.com/iswaldeen/QGIS_Plugin_Coordinate_plotter
@@ -20,27 +23,26 @@ repository=https://github.com/iswaldeen/QGIS_Plugin_Coordinate_plotter
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog= <strong>1.02</strong>
- - Refactored PyQt imports to use qgis.PyQt consistently
- - Removed unused imports and cleaned up internal code structure
+changelog=<strong>1.1</strong>
+ - Added QGIS 4 / Qt6 compatibility improvements
+ - Updated deprecated Qt5 handling and qgis.PyQt imports
+ - Added dark mode aware UI styling
+ - Improved CRS handling and automatic map zooming
+ - Improved plotting reliability, validation, and editing workflows
+ - Added sequential naming for temporary point layers
+ - Improved dialog wording and overall plugin usability
+
+ <p><strong>1.02</strong>
+ - Refactored imports and removed unused code
  - Improved layer validation and error handling
- - Added point geometry type validation for selected layers
- - Improved temporary memory layer creation handling
- - Added layer extent updates and repaint refresh after plotting
- - Improved dialog state handling and checkbox logic
- - Added automatic UI updates when layer selection changes
- - Prevented duplicate signal connections when reopening the plugin
- - Added CRS selection support for temporary layers
- - Added option to use either project CRS or custom CRS
- - Added QgsProjectionSelectionWidget integration
- - Improved CRS widget enable/disable behaviour
- - Prevented invalid CRS checkbox states when switching plotting modes
- - Improved handling of existing layer CRS behaviour
- - Added clearer CRS guidance and workflow documentation to help page
- - Improved dialog sizing and resize behaviour
- - Simplified dialog reset behaviour
- - Removed unused legacy methods
- - Improved code readability and maintainability
+ - Added point layer geometry validation
+ - Improved temporary layer creation and CRS handling
+ - Added project/custom CRS selection support
+ - Improved dialog state handling and UI updates
+ - Prevented duplicate signal connections
+ - Improved layer refresh and extent updates after plotting
+ - Improved help documentation and dialog behaviour
+ - General code cleanup and maintainability improvements
 
  <p><strong>1.01</strong>
  - Added option to create a temporary point layer automatically
