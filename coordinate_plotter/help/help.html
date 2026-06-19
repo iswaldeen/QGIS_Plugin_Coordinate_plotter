@@ -67,19 +67,68 @@
 
         <h2>What does this tool do?</h2>
         <p>
-            Coordinate Plotter creates a point on the QGIS map from an X coordinate and a Y coordinate.
+            Coordinate Plotter creates a point on the QGIS map from entered or pasted coordinates.
+            Coordinates can be typed manually or pasted as a complete coordinate pair copied from sources such as QGIS or Google Maps.
         </p>
 
         <h2>How to use the tool</h2>
         <ol>
             <li>Open <strong>Coordinate Plotter</strong> from the QGIS toolbar or plugin menu.</li>
             <li>Choose whether to add the point to an existing layer or create a temporary layer.</li>
-            <li>Enter the X and Y coordinates.</li>
+            <li>Enter the coordinates manually, or paste a complete coordinate pair into the paste coordinate box.</li>
+            <li>Check that the coordinate labels match the CRS you are using.</li>
             <li>Click <strong>OK</strong>.</li>
         </ol>
 
         <div class="note">
             When the tool opens, no plotting option is selected. Choose one option before entering coordinates.
+        </div>
+
+        <h2>Pasting a complete coordinate</h2>
+        <p>
+            The dialog includes a paste coordinate box for entering a full coordinate pair in one step.
+            This is useful when copying coordinates directly from QGIS, Google Maps, spreadsheets, reports, or other documents.
+        </p>
+
+        <p>
+            Paste the full coordinate into the box, then click <strong>OK</strong>. The plugin reads the two numeric values and copies them into the main coordinate fields before plotting the point.
+        </p>
+
+        <h3>Accepted coordinate formats</h3>
+        <ul>
+            <li><code>530000, 180000</code></li>
+            <li><code>530000 180000</code></li>
+            <li><code>530000; 180000</code></li>
+            <li><code>51.5074, -0.1278</code></li>
+            <li><code>-0.1278, 51.5074</code></li>
+        </ul>
+
+        <div class="note">
+            The pasted coordinate should contain exactly two numeric values. Extra text is ignored where possible, but the tool will warn you if it cannot identify a valid coordinate pair.
+        </div>
+
+        <h2>CRS-aware coordinate labels</h2>
+        <p>
+            Coordinate Plotter updates the coordinate labels based on the CRS currently being used.
+            This helps make it clearer whether the expected values are longitude/latitude or projected X/Y coordinates.
+        </p>
+
+        <ul>
+            <li>For a <strong>geographic CRS</strong>, the fields are shown as <strong>Longitude / X</strong> and <strong>Latitude / Y</strong>.</li>
+            <li>For a <strong>projected CRS</strong>, the fields are shown as <strong>Easting / X</strong> and <strong>Northing / Y</strong>, using the CRS map units where available.</li>
+        </ul>
+
+        <div class="note">
+            QGIS stores point coordinates as X and Y. For geographic coordinate systems, X means longitude and Y means latitude.
+        </div>
+
+        <h3>Google Maps coordinates</h3>
+        <p>
+            Google Maps commonly copies coordinates as <strong>latitude, longitude</strong>. When a geographic CRS is selected, the plugin attempts to detect this format and place the values into the correct QGIS X/Y fields.
+        </p>
+
+        <div class="note">
+            Always check that the selected CRS matches the coordinates you are plotting. A valid coordinate pair can still appear in the wrong place if it is plotted using the wrong CRS.
         </div>
 
         <h2>Plotting options</h2>
@@ -88,7 +137,7 @@
         <ul>
             <li>Select <strong>Choose an existing map layer</strong>.</li>
             <li>Choose a point layer from the dropdown.</li>
-            <li>Enter the X and Y coordinates.</li>
+            <li>Enter the coordinates manually or paste a complete coordinate pair.</li>
             <li>Click <strong>OK</strong>.</li>
         </ul>
 
@@ -104,7 +153,7 @@
         <ul>
             <li>Select <strong>Create a temporary layer</strong>.</li>
             <li>Choose whether to use the project CRS or select another CRS.</li>
-            <li>Enter the X and Y coordinates.</li>
+            <li>Enter the coordinates manually or paste a complete coordinate pair.</li>
             <li>Click <strong>OK</strong>.</li>
         </ul>
 
@@ -135,6 +184,12 @@
             If the selected layer was already in edit mode, the new point is added to the edit session. Save the layer edits in QGIS to keep the point permanently.
         </div>
 
+        <h2>Updated dialog layout</h2>
+        <p>
+            The dialog layout has been refreshed to improve clarity and make the coordinate, CRS, and plotting options easier to follow.
+            The dialog height has also been increased so that all controls fit more comfortably.
+        </p>
+
         <h2>Help button and display</h2>
         <p>
             The help button uses a light or dark icon depending on your current QGIS theme, so it remains visible in both light and dark mode.
@@ -146,6 +201,8 @@
             <li><strong>The point appears in the wrong place:</strong> check that the coordinates match the CRS being used.</li>
             <li><strong>No layers appear in the dropdown:</strong> make sure your project contains at least one point layer.</li>
             <li><strong>The CRS option is disabled:</strong> this is normal when using an existing layer.</li>
+            <li><strong>The pasted coordinate is not accepted:</strong> make sure it contains exactly two numeric values.</li>
+            <li><strong>Longitude and latitude look reversed:</strong> check whether the source copied the coordinate as latitude, longitude.</li>
         </ul>
 
     </div>

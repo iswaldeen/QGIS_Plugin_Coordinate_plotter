@@ -23,11 +23,12 @@ from qgis.core import (
     QgsRectangle,
     QgsVectorLayer,
     QgsWkbTypes,
-    edit,
-    QgsCsException,
+    QgsUnitTypes,
+    edit
 )
 
 import math
+import re
 from . import resources
 from .Coordinate_Plotter_dialog import CoordinatePlotterDialog
 
@@ -88,6 +89,18 @@ class CoordinatePlotter:
 
         # Update dialog controls when the selected layer changes.
         self.dlg.mMapLayerComboBox.layerChanged.connect(self.layer_type_check)
+        
+        self.dlg.coordinateLineEdit.textEdited.connect(
+            self.apply_pasted_coordinate_text
+        )
+
+        self.dlg.mQgsProjectionSelectionWidget.crsChanged.connect(
+            self.update_coordinate_labels
+        )
+
+        QgsProject.instance().crsChanged.connect(
+            self.update_coordinate_labels
+        )
 
         # Connect once only. Do not connect this in run().
         self.dlg.finished.connect(self.on_dialog_finished)
@@ -284,6 +297,10 @@ class CoordinatePlotter:
             )
             return
 
+        if self.dlg.coordinateLineEdit.text().strip():
+            if not self.apply_pasted_coordinate_text(show_warning=True):
+                return
+
         x = self.dlg.doubleSpinBox.value()
         y = self.dlg.doubleSpinBox_2.value()
 
@@ -334,16 +351,7 @@ class CoordinatePlotter:
                 destination_crs,
                 QgsProject.instance()
             )
-           
-            try:
-                center = transform.transform(center)
-            except QgsCsException:
-                QMessageBox.warning(
-                    self.iface.mainWindow(),
-                    self.tr("Coordinate plotting"),
-                    self.tr("The point was added, but QGIS could not transform it for map zooming.")
-                )
-                return
+            center = transform.transform(center)
 
         current_extent = canvas.extent()
         width = current_extent.width() * 0.1
@@ -388,16 +396,13 @@ class CoordinatePlotter:
         create_temp_layer = self.dlg.templayercheckBox.isChecked()
         use_existing_layer = self.dlg.layercheckBox.isChecked()
         selected_layer = self.dlg.mMapLayerComboBox.currentLayer()
-        
-       # CRS selection only applies when creating a new temporary layer.
-        # When plotting to an existing layer, coordinates are interpreted in that layer's CRS.
+
+        # CRS selection only applies when creating a new temporary layer.
+        # Existing layers already have their own CRS, so the CRS option must not remain unchecked.
         if use_existing_layer:
             self.dlg.crscheckBox.blockSignals(True)
-            self.dlg.crscheckBox.setChecked(False)
+            self.dlg.crscheckBox.setChecked(True)
             self.dlg.crscheckBox.blockSignals(False)
-
-            if selected_layer is not None and selected_layer.crs().isValid():
-                self.dlg.mQgsProjectionSelectionWidget.setCrs(selected_layer.crs())
 
         use_project_crs = self.dlg.crscheckBox.isChecked()
 
@@ -406,12 +411,7 @@ class CoordinatePlotter:
             use_existing_layer and selected_layer is not None
         )
 
-        # CRS controls are only relevant when creating a new temporary layer.
-        self.dlg.crscheckBox.setVisible(create_temp_layer)
-        self.dlg.mQgsProjectionSelectionWidget.setVisible(create_temp_layer)
-
         self.dlg.crscheckBox.setEnabled(create_temp_layer)
-
         self.dlg.mQgsProjectionSelectionWidget.setEnabled(
             create_temp_layer and not use_project_crs
         )
@@ -420,6 +420,112 @@ class CoordinatePlotter:
         self.dlg.doubleSpinBox.setEnabled(enable_coordinates)
         self.dlg.doubleSpinBox_2.setEnabled(enable_coordinates)
         self.set_ok_button_enabled(enable_coordinates)
+        
+        self.dlg.coordinateLineEdit.setEnabled(enable_coordinates)
+        self.update_coordinate_labels()
+     
+    def active_coordinate_crs(self):
+        """Return the CRS expected by the coordinate input fields."""
+        if self.dlg.layercheckBox.isChecked():
+            layer = self.dlg.mMapLayerComboBox.currentLayer()
+
+            if isinstance(layer, QgsVectorLayer) and layer.isValid():
+                return layer.crs()
+
+        return self.selected_output_crs()
+
+    def update_coordinate_labels(self):
+        """Update coordinate labels to match the active plotting CRS."""
+        crs = self.active_coordinate_crs()
+
+        if crs.isValid():
+            unit_name = QgsUnitTypes.toString(crs.mapUnits())
+        else:
+            unit_name = self.tr("map units")
+
+        if crs.isValid() and crs.isGeographic():
+            self.dlg.label_2.setText(self.tr("Longitude / X (degrees)"))
+            self.dlg.label_3.setText(self.tr("Latitude / Y (degrees)"))
+            self.dlg.coordinateHintLabel.setText(
+                self.tr(
+                    "Paste a longitude/latitude or latitude/longitude pair. "
+                    "Google Maps style latitude, longitude values are detected where possible."
+                )
+            )
+        else:
+            self.dlg.label_2.setText(
+                self.tr("Easting / X ({})").format(unit_name)
+            )
+            self.dlg.label_3.setText(
+                self.tr("Northing / Y ({})").format(unit_name)
+            )
+            self.dlg.coordinateHintLabel.setText(
+                self.tr(
+                    "Paste two coordinate values separated by a comma, space, tab, slash or semicolon."
+                )
+            )
+
+    def apply_pasted_coordinate_text(self, show_warning=False):
+        """Parse a pasted coordinate pair and copy it into the coordinate fields."""
+        text = self.dlg.coordinateLineEdit.text().strip()
+
+        if not text:
+            return True
+
+        values = re.findall(
+            r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?",
+            text
+        )
+
+        if len(values) != 2:
+            if show_warning:
+                QMessageBox.warning(
+                    self.iface.mainWindow(),
+                    self.tr("Coordinate plotting"),
+                    self.tr("Please paste exactly two coordinate values.")
+                )
+
+            return False
+
+        first_value = float(values[0])
+        second_value = float(values[1])
+
+        crs = self.active_coordinate_crs()
+
+        if crs.isValid() and crs.isGeographic():
+            # Google Maps commonly copies coordinates as latitude, longitude.
+            # QGIS coordinate fields still expect X/Y, i.e. longitude/latitude.
+            if (
+                -90 <= first_value <= 90
+                and -180 <= second_value <= 180
+                and abs(first_value) > abs(second_value)
+            ):
+                x = second_value
+                y = first_value
+            else:
+                x = first_value
+                y = second_value
+
+            if not (-180 <= x <= 180 and -90 <= y <= 90):
+                if show_warning:
+                    QMessageBox.warning(
+                        self.iface.mainWindow(),
+                        self.tr("Coordinate plotting"),
+                        self.tr(
+                            "The pasted longitude/latitude values are outside "
+                            "the valid range for a geographic CRS."
+                        )
+                    )
+
+                return False
+        else:
+            x = first_value
+            y = second_value
+
+        self.dlg.doubleSpinBox.setValue(x)
+        self.dlg.doubleSpinBox_2.setValue(y)
+
+        return True
         
     def dialog_accepted_code(self):
         """Return QDialog accepted result code for Qt5/Qt6 compatibility."""
@@ -433,6 +539,9 @@ class CoordinatePlotter:
         """Reset dialog controls to their default state."""
         self.dlg.doubleSpinBox.setValue(0)
         self.dlg.doubleSpinBox_2.setValue(0)
+        
+        self.dlg.coordinateLineEdit.clear()
+        self.dlg.coordinateLineEdit.setEnabled(False)
 
         self.button_group.setExclusive(False)
         self.dlg.layercheckBox.setChecked(False)

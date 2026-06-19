@@ -2,204 +2,93 @@
 <ui version="4.0">
  <class>Coordinate_Plotter</class>
  <widget class="QDialog" name="Coordinate_Plotter">
-  <property name="windowModality">
-   <enum>Qt::ApplicationModal</enum>
-  </property>
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>693</width>
-    <height>430</height>
-   </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>450</width>
-    <height>300</height>
-   </size>
-  </property>
-  <property name="windowTitle">
-   <string>Coordinate Plotter</string>
-  </property>
-  <layout class="QGridLayout" name="gridLayout_2">
-   <property name="sizeConstraint">
-    <enum>QLayout::SetDefaultConstraint</enum>
-   </property>
-   <item row="2" column="0" colspan="3">
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="2" column="1">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="minimum">
-        <double>-999999.998999999952503</double>
-       </property>
-       <property name="maximum">
-        <double>999999.998999999952503</double>
-       </property>
-      </widget>
+  <property name="windowModality"><enum>Qt::ApplicationModal</enum></property>
+  <property name="geometry"><rect><x>0</x><y>0</y><width>720</width><height>650</height></rect></property>
+  <property name="minimumSize"><size><width>620</width><height>650</height></size></property>
+  <property name="windowTitle"><string>Coordinate Plotter</string></property>
+  <property name="styleSheet"><string notr="true">
+QDialog#Coordinate_Plotter { background-color: palette(window); }
+QLabel#titleLabel { font-size: 18px; font-weight: 600; }
+QLabel#subtitleLabel { color: palette(mid); }
+QGroupBox { font-weight: 600; border: 1px solid palette(midlight); border-radius: 8px; margin-top: 12px; padding: 12px; }
+QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 4px; }
+QLineEdit, QDoubleSpinBox, QgsMapLayerComboBox, QgsProjectionSelectionWidget { min-height: 26px; }
+QLabel#coordinateHintLabel { color: palette(mid); }
+  </string></property>
+  <layout class="QVBoxLayout" name="mainVerticalLayout">
+   <property name="leftMargin"><number>18</number></property>
+   <property name="topMargin"><number>18</number></property>
+   <property name="rightMargin"><number>18</number></property>
+   <property name="bottomMargin"><number>18</number></property>
+   <property name="spacing"><number>12</number></property>
+   <item>
+    <layout class="QHBoxLayout" name="headerLayout">
+     <item>
+      <layout class="QVBoxLayout" name="titleLayout">
+       <item><widget class="QLabel" name="titleLabel"><property name="text"><string>Coordinate Plotter</string></property></widget></item>
+       <item><widget class="QLabel" name="subtitleLabel"><property name="text"><string>Plot a point from typed values or a pasted coordinate pair.</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+      </layout>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Select X coordinate</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <spacer name="verticalSpacer">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="2" column="0">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox">
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="minimum">
-        <double>-999999.998999999952503</double>
-       </property>
-       <property name="maximum">
-        <double>999999.998999999952503</double>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Select Y coordinate</string>
-       </property>
+     <item><spacer name="headerSpacer"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer></item>
+     <item>
+      <widget class="QPushButton" name="helppushButton">
+       <property name="maximumSize"><size><width>60</width><height>60</height></size></property>
+       <property name="toolTip"><string>Help</string></property>
+       <property name="text"><string/></property>
+       <property name="icon"><iconset><normaloff>icons/question_mark.png</normaloff>icons/question_mark.png</iconset></property>
       </widget>
      </item>
     </layout>
    </item>
-   <item row="0" column="2">
-    <widget class="QPushButton" name="helppushButton">
-     <property name="maximumSize">
-      <size>
-       <width>60</width>
-       <height>60</height>
-      </size>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>icons/question_mark.png</normaloff>icons/question_mark.png</iconset>
-     </property>
+   <item>
+    <widget class="QGroupBox" name="destinationGroupBox">
+     <property name="title"><string>1. Plot destination</string></property>
+     <layout class="QVBoxLayout" name="destinationLayout">
+      <property name="spacing"><number>8</number></property>
+      <item><widget class="QCheckBox" name="templayercheckBox"><property name="text"><string>Create a temporary point layer</string></property><property name="tristate"><bool>false</bool></property></widget></item>
+      <item><widget class="QCheckBox" name="layercheckBox"><property name="text"><string>Add point to an existing point layer</string></property><property name="tristate"><bool>false</bool></property></widget></item>
+      <item><widget class="QgsMapLayerComboBox" name="mMapLayerComboBox"><property name="toolTip"><string>Select the point layer that will receive the new feature.</string></property></widget></item>
+     </layout>
     </widget>
    </item>
-   <item row="1" column="0" colspan="3">
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QCheckBox" name="templayercheckBox">
-       <property name="text">
-        <string>Create a new temporary point layer</string>
-       </property>
-       <property name="autoExclusive">
-        <bool>true</bool>
-       </property>
-       <property name="tristate">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="layercheckBox">
-       <property name="text">
-        <string>Plot to an existing point layer</string>
-       </property>
-       <property name="autoExclusive">
-        <bool>true</bool>
-       </property>
-       <property name="tristate">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QgsMapLayerComboBox" name="mMapLayerComboBox"/>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="crscheckBox">
-       <property name="text">
-        <string>Use project CRS for new temporary layer</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QgsProjectionSelectionWidget" name="mQgsProjectionSelectionWidget"/>
-     </item>
-    </layout>
-   </item>
-   <item row="3" column="1" colspan="2">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
+   <item>
+    <widget class="QGroupBox" name="crsGroupBox">
+     <property name="title"><string>2. Coordinate reference system</string></property>
+     <layout class="QVBoxLayout" name="crsLayout">
+      <property name="spacing"><number>8</number></property>
+      <item><widget class="QCheckBox" name="crscheckBox"><property name="text"><string>Use project CRS for temporary layer</string></property></widget></item>
+      <item><widget class="QgsProjectionSelectionWidget" name="mQgsProjectionSelectionWidget"><property name="toolTip"><string>Select the CRS used by the entered coordinates when creating a temporary layer.</string></property></widget></item>
+      <item><widget class="QLabel" name="crsInfoLabel"><property name="text"><string>Selected coordinate fields will update automatically from the active plotting CRS.</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+     </layout>
     </widget>
    </item>
+   <item>
+    <widget class="QGroupBox" name="coordinatesGroupBox">
+     <property name="title"><string>3. Coordinate input</string></property>
+     <layout class="QGridLayout" name="coordinatesGridLayout">
+      <property name="horizontalSpacing"><number>12</number></property>
+      <property name="verticalSpacing"><number>8</number></property>
+      <item row="0" column="0" colspan="2"><widget class="QLabel" name="pasteCoordinateLabel"><property name="text"><string>Paste full coordinate</string></property></widget></item>
+      <item row="1" column="0" colspan="2"><widget class="QLineEdit" name="coordinateLineEdit"><property name="placeholderText"><string>Examples: 51.5074, -0.1278  |  -0.1278 51.5074  |  530000, 180000</string></property><property name="clearButtonEnabled"><bool>true</bool></property></widget></item>
+      <item row="2" column="0" colspan="2"><widget class="QLabel" name="coordinateHintLabel"><property name="text"><string>Paste two numbers separated by a comma, space, tab, slash or semicolon. Values are copied into the fields below.</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+      <item row="3" column="0"><widget class="QLabel" name="label_2"><property name="text"><string>X coordinate</string></property></widget></item>
+      <item row="3" column="1"><widget class="QLabel" name="label_3"><property name="text"><string>Y coordinate</string></property></widget></item>
+      <item row="4" column="0"><widget class="QDoubleSpinBox" name="doubleSpinBox"><property name="decimals"><number>8</number></property><property name="minimum"><double>-999999999.000000000000000</double></property><property name="maximum"><double>999999999.000000000000000</double></property><property name="singleStep"><double>1.000000000000000</double></property></widget></item>
+      <item row="4" column="1"><widget class="QDoubleSpinBox" name="doubleSpinBox_2"><property name="decimals"><number>8</number></property><property name="minimum"><double>-999999999.000000000000000</double></property><property name="maximum"><double>999999999.000000000000000</double></property><property name="singleStep"><double>1.000000000000000</double></property></widget></item>
+     </layout>
+    </widget>
+   </item>
+   <item><spacer name="verticalSpacer"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>20</height></size></property></spacer></item>
+   <item><widget class="QDialogButtonBox" name="buttonBox"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="standardButtons"><set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set></property></widget></item>
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>QgsMapLayerComboBox</class>
-   <extends>QComboBox</extends>
-   <header>qgsmaplayercombobox.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QgsProjectionSelectionWidget</class>
-   <extends>QWidget</extends>
-   <header>qgsprojectionselectionwidget.h</header>
-  </customwidget>
+  <customwidget><class>QgsMapLayerComboBox</class><extends>QComboBox</extends><header>qgsmaplayercombobox.h</header></customwidget>
+  <customwidget><class>QgsProjectionSelectionWidget</class><extends>QWidget</extends><header>qgsprojectionselectionwidget.h</header></customwidget>
  </customwidgets>
  <resources/>
  <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>Coordinate_Plotter</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>Coordinate_Plotter</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
+  <connection><sender>buttonBox</sender><signal>accepted()</signal><receiver>Coordinate_Plotter</receiver><slot>accept()</slot><hints><hint type="sourcelabel"><x>248</x><y>254</y></hint><hint type="destinationlabel"><x>157</x><y>274</y></hint></hints></connection>
+  <connection><sender>buttonBox</sender><signal>rejected()</signal><receiver>Coordinate_Plotter</receiver><slot>reject()</slot><hints><hint type="sourcelabel"><x>316</x><y>260</y></hint><hint type="destinationlabel"><x>286</x><y>274</y></hint></hints></connection>
  </connections>
 </ui>

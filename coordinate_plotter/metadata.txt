@@ -9,7 +9,7 @@ qgisMaximumVersion=4.99
 supportsQt6=True
 
 description=This plugin plots coordinates from user-inputted values.
-version=1.1
+version=1.2
 author=Isaac Thompson
 email=iswaldeen@outlook.com
 
@@ -23,14 +23,24 @@ repository=https://github.com/iswaldeen/QGIS_Plugin_Coordinate_plotter
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog=<strong>1.1</strong>
- - Added QGIS 4 / Qt6 compatibility improvements
- - Updated deprecated Qt5 handling and qgis.PyQt imports
- - Added dark mode aware UI styling
- - Improved CRS handling and automatic map zooming
- - Improved plotting reliability, validation, and editing workflows
- - Added sequential naming for temporary point layers
- - Improved dialog wording and overall plugin usability
+changelog=<strong>1.2</strong>
+ - Refreshed dialog layout for improved clarity and visual appearance.
+ - Increased dialog height to better accommodate all controls.
+ - Added support for pasting complete coordinate pairs directly into a single input field.
+ - Added automatic coordinate parsing from common sources such as QGIS and Google Maps.
+ - Coordinate labels now update dynamically based on the selected CRS.
+ - Geographic CRS inputs are displayed as Longitude/Latitude.
+ - Projected CRS inputs are displayed as Easting/Northing with CRS units.
+ - Improved coordinate entry guidance and input validation.
+
+ <p><strong>1.1</strong>
+ - Added QGIS 4 / Qt6 compatibility support
+ - Replaced deprecated Qt5 enum usage
+ - Updated dialog execution handling for Qt6
+ - Updated resources to use qgis.PyQt imports
+ - Added dark mode aware help button styling
+ - Improved plotting robustness, layer validation, and editing workflows
+ - Added safer CRS handling and automatic zooming improvements
 
  <p><strong>1.02</strong>
  - Refactored imports and removed unused code
