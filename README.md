@@ -9,7 +9,7 @@ Coordinate Plotter allows users to quickly plot point coordinates. The plugin su
 * Creating and plotting to a temporary memory layer
 * Using either the current project CRS or a custom CRS for temporary layers
 * Automatic map zooming to plotted coordinates
-* Simple and beginner-friendly workflow
+* Automatic coordinate detection and parsing from pasted text
 * Forward-compatible design for:
 
   * QGIS 3.x
